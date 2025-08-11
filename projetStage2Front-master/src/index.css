@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- AJOUT ICI --- */
+/* C'est la classe personnalisée pour nos champs de formulaire. */
+/* Elle sera appliquée à tous les inputs où on utilise la classe "input-style". */
+@layer components {
+  .input-style {
+    @apply block w-full rounded-lg border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors;
+  }
+}
+/* --- FIN DE L'AJOUT --- */
+
+
+/* Le reste de votre code est parfait, on ne le touche pas. */
+.debug-screens::before {
+  position: fixed;
+  z-index: 9999;
+  bottom: 0.5rem;
+  left: 0.5rem;
+  padding: 0.5rem;
+  background-color: black;
+  color: white;
+  font-size: 0.875rem;
+  content: 'STYLES NOT LOADED';
+}
+
+@supports (content: 'TAILWIND LOADED') {
+  .debug-screens::before {
+    content: 'TAILWIND LOADED';
+    background-color: green;
+  }
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #f3f4f6;
+}
+/* src/index.css */
+
+@layer components {
+  /* Classe existante */
+  .input-style {
+    @apply block w-full rounded-lg border-gray-400 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 transition-colors;
+  }
+  /* NOUVELLES CLASSES POUR LE TABLEAU */
+  .th-style {
+    @apply py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider;
+  }
+  .td-style {
+    @apply py-4 px-6;
+  }
+}
