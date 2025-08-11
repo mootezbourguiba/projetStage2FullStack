@@ -1,70 +1,83 @@
 // src/pages/Dashboard.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { FiAlertTriangle } from 'react-icons/fi';
-// --- AJOUT : On importe les nouveaux composants de graphiques ---
 import CategoryChart from '../components/charts/CategoryChart';
 import MonthlyActivityChart from '../components/charts/MonthlyActivityChart';
 
-const Dashboard = () => {
-  // Vos données existantes (inchangées)
+const Dashboard = ({ setNotifications }) => {
+  // Vos données statiques pour les activités récentes (inchangées)
   const recentActivities = [
     { action: "Entrée de stock", product: "Produit A", quantity: "+50", time: "Il y a 2 heures" },
     { action: "Sortie de stock", product: "Produit B", quantity: "-20", time: "Il y a 4 heures" },
     { action: "Nouveau produit ajouté", product: "Produit C", time: "Il y a 1 jour" }
   ];
 
-  // Vos données de stocks critiques (inchangées)
-  const [criticalProducts] = useState([
-    { id: 4, name: 'Souris gaming', currentStock: 4, alertThreshold: 5 },
-    { id: 2, name: 'Imprimante Canon', currentStock: 3, alertThreshold: 3 },
-  ]);
+  // --- MODIFICATION : L'état commence vide, plus de données statiques ---
+  const [criticalProducts, setCriticalProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // --- MODIFICATION : On charge les données depuis l'API ---
+  useEffect(() => {
+    const fetchCriticalProducts = async () => {
+      try {
+        const response = await axios.get('http://localhost:8081/api/products');
+        // On filtre directement les produits pour ne garder que les critiques
+        const critical = response.data.filter(p => p.critical);
+        setCriticalProducts(critical);
+
+        // On génère les notifications pour les produits critiques
+        if (critical.length > 0) {
+          const newNotifications = critical.map(p => ({
+            type: 'alert',
+            message: `Le stock de "${p.name}" est à ${p.currentStock}, en dessous du seuil de ${p.alertThreshold}.`,
+            time: 'À l\'instant'
+          }));
+          // On s'assure que setNotifications est bien une fonction avant de l'appeler
+          if (typeof setNotifications === 'function') {
+            setNotifications(newNotifications);
+          }
+        }
+        
+      } catch (error) {
+        console.error("Erreur chargement produits critiques:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCriticalProducts();
+  }, [setNotifications]);
 
   return (
     <>
       <h1 className="text-2xl font-semibold mb-6">Tableau de bord</h1>
 
-      {/* Votre grille de stats existante (inchangée) */}
+      {/* Votre grille de stats (inchangée) */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-blue-100 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-2 text-blue-600">Total Produits</h3>
-          <p className="text-3xl font-bold text-gray-700">150</p>
-        </div>
-        <div className="bg-green-100 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-2 text-green-600">En Stock</h3>
-          <p className="text-3xl font-bold text-gray-700">120</p>
-        </div>
-        <div className="bg-yellow-100 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-2 text-yellow-600">À Commander</h3>
-          <p className="text-3xl font-bold text-gray-700">15</p>
-        </div>
-        <div className="bg-purple-100 rounded-lg p-6">
-          <h3 className="text-lg font-medium mb-2 text-purple-600">Catégories</h3>
-          <p className="text-3xl font-bold text-gray-700">8</p>
-        </div>
+        <div className="bg-blue-100 rounded-lg p-6"><h3 className="text-lg font-medium mb-2 text-blue-600">Total Produits</h3><p className="text-3xl font-bold text-gray-700">150</p></div>
+        <div className="bg-green-100 rounded-lg p-6"><h3 className="text-lg font-medium mb-2 text-green-600">En Stock</h3><p className="text-3xl font-bold text-gray-700">120</p></div>
+        <div className="bg-yellow-100 rounded-lg p-6"><h3 className="text-lg font-medium mb-2 text-yellow-600">À Commander</h3><p className="text-3xl font-bold text-gray-700">15</p></div>
+        <div className="bg-purple-100 rounded-lg p-6"><h3 className="text-lg font-medium mb-2 text-purple-600">Catégories</h3><p className="text-3xl font-bold text-gray-700">8</p></div>
       </div>
 
-      {/* --- AJOUT DE LA NOUVELLE GRILLE POUR LES GRAPHIQUES --- */}
+      {/* Vos graphiques (inchangés) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-8 mb-8">
-        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm">
-          <CategoryChart />
-        </div>
-        <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm">
-          <MonthlyActivityChart />
-        </div>
+        <div className="lg:col-span-2 bg-white p-6 rounded-lg shadow-sm"><CategoryChart /></div>
+        <div className="lg:col-span-3 bg-white p-6 rounded-lg shadow-sm"><MonthlyActivityChart /></div>
       </div>
       
-      {/* --- AJOUT D'UNE GRILLE POUR LES DEUX DERNIERS BLOCS --- */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Votre section de stocks critiques existante (inchangée) */}
+        {/* Section des stocks critiques (maintenant dynamique) */}
         <div>
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Stocks Critiques</h2>
           <div className="bg-white rounded-lg shadow-sm">
             <div className="divide-y divide-gray-200">
-              {criticalProducts.length > 0 ? (
+              {loading ? <p className="p-4 text-gray-500">Chargement...</p> : 
+               criticalProducts.length > 0 ? (
                 criticalProducts.map(product => (
                   <div key={product.id} className="p-4 flex justify-between items-center hover:bg-gray-50">
-                    <div className="flex items-center"><FiAlertTriangle className="h-5 w-5 text-red-500 mr-4" /><div><p className="font-medium text-gray-800">{product.name}</p><p className="text-sm text-gray-500">Seuil d'alerte: {product.alertThreshold}</p></div></div>
+                    <div className="flex items-center"><FiAlertTriangle className="h-5 w-5 text-red-500 mr-4" /><div><p className="font-medium text-gray-800">{product.name}</p><p className="text-sm text-gray-500">Seuil: {product.alertThreshold}</p></div></div>
                     <div className="text-right"><p className="font-bold text-red-600 text-lg">{product.currentStock}</p><p className="text-xs text-gray-500">en stock</p></div>
                   </div>
                 ))
@@ -75,7 +88,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Votre section d'activités récentes existante (inchangée) */}
+        {/* Votre section d'activités récentes (inchangée) */}
         <div>
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Activités récentes</h2>
           <div className="bg-white rounded-lg shadow-sm p-6">

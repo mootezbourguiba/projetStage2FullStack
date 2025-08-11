@@ -12,13 +12,15 @@ public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String name;
     private String contactPerson;
     private String email;
     private String phone;
 
-    // --- ASSUREZ-VOUS QUE CE BLOC EST BIEN PRÉSENT ---
+    // --- AJOUT DE LA RELATION ICI ---
+    // Un fournisseur est principalement associé à une catégorie de produits.
     @ManyToOne
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id") // Crée une colonne 'category_id' dans la table 'supplier'
     private Category category;
 }

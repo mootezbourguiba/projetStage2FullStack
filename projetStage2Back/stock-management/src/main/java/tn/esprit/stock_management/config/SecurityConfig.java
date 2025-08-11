@@ -23,10 +23,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // --- NOUVEAU: On applique notre configuration CORS ---
+                // Active la configuration CORS définie ci-dessous
                 .cors(withDefaults())
 
+                // Désactive CSRF pour simplifier les appels API depuis un frontend séparé
                 .csrf(AbstractHttpConfigurer::disable)
+
+                // Autorise toutes les requêtes sans authentification
                 .authorizeHttpRequests(auth -> auth
                         .anyRequest().permitAll()
                 );
@@ -34,20 +37,27 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // --- NOUVEAU: Définition de la configuration CORS globale ---
+    // Configuration CORS globale
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // On autorise notre front-end React à communiquer (sur ses ports possibles)
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173", "http://localhost:5174"));
-        // On autorise les méthodes HTTP les plus courantes
+
+        // Autorise uniquement ton frontend en développement
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+
+        // Autorise les méthodes HTTP nécessaires
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // On autorise les en-têtes les plus courants
+
+        // Autorise les en-têtes courants
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
 
+        // Autorise l'envoi de cookies/headers d'authentification si nécessaire
+        configuration.setAllowCredentials(true);
+
+        // Applique cette configuration à toutes les routes API
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // On applique cette configuration à toutes les routes de notre API
-        source.registerCorsConfiguration("/api/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
+
         return source;
     }
 }
