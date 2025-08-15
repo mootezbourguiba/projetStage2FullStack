@@ -1,63 +1,75 @@
 // src/main/java/tn/esprit/stock_management/services/CategoryService.java
-
 package tn.esprit.stock_management.services;
 
+import tn.esprit.stock_management.dto.CategoryRequest;   // <-- Importer les DTOs
+import tn.esprit.stock_management.dto.CategoryResponse;  // <-- Importer les DTOs
 import tn.esprit.stock_management.entities.Category;
 import tn.esprit.stock_management.repositories.CategoryRepository;
-import tn.esprit.stock_management.repositories.ProductRepository; // <-- NOUVEAU : Importer le repository des produits
+import tn.esprit.stock_management.repositories.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus; // <-- NOUVEAU : Importer pour les statuts HTTP
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException; // <-- NOUVEAU : Pour renvoyer des erreurs propres
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
-
-    // NOUVEAU : Injection du ProductRepository pour pouvoir l'utiliser
     @Autowired
     private ProductRepository productRepository;
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    // Méthode privée pour convertir une entité Category en DTO CategoryResponse
+    private CategoryResponse toCategoryResponse(Category category) {
+        CategoryResponse dto = new CategoryResponse();
+        dto.setId(category.getId());
+        dto.setName(category.getName());
+        dto.setDescription(category.getDescription());
+        return dto;
     }
 
-    public Category createCategory(Category category) {
-        return categoryRepository.save(category);
+    // --- CORRECTION POUR L'ERREUR 1 ---
+    // Cette méthode renvoie maintenant une List<CategoryResponse> comme attendu par le contrôleur.
+    public List<CategoryResponse> getAllCategories() {
+        return categoryRepository.findAll()
+                .stream()
+                .map(this::toCategoryResponse) // On utilise la méthode de conversion
+                .collect(Collectors.toList());
     }
 
-    // --- Logique de mise à jour AMÉLIORÉE ---
-    // Utilise ResponseStatusException pour renvoyer une erreur 404 propre
-    public Category updateCategory(Long id, Category categoryDetails) {
+    // --- CORRECTION POUR L'ERREUR 2 ---
+    // Cette méthode s'appelle bien saveCategory et accepte un CategoryRequest.
+    public CategoryResponse saveCategory(CategoryRequest request) {
+        Category category = new Category();
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+        Category savedCategory = categoryRepository.save(category);
+        return toCategoryResponse(savedCategory); // On renvoie un DTO de réponse
+    }
+
+    // --- CORRECTION POUR LA MISE À JOUR ---
+    public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Catégorie non trouvée avec l'id : " + id));
 
-        category.setName(categoryDetails.getName());
-        category.setDescription(categoryDetails.getDescription());
-
-        return categoryRepository.save(category);
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+        Category updatedCategory = categoryRepository.save(category);
+        return toCategoryResponse(updatedCategory);
     }
 
-    // --- Logique de suppression COMPLÈTEMENT RÉÉCRITE et SÉCURISÉE ---
+    // --- Logique de suppression robuste (déjà bonne, mais je la garde pour la cohérence) ---
     public void deleteCategory(Long id) {
-        // ÉTAPE 1: Vérifier si la catégorie existe. Sinon, renvoyer une erreur 404.
         if (!categoryRepository.existsById(id)) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Impossible de supprimer, la catégorie avec l'id " + id + " n'existe pas.");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Catégorie non trouvée avec l'id : " + id);
         }
-
-        // ÉTAPE 2: Vérifier si des produits sont liés à cette catégorie.
         long productCount = productRepository.countByCategoryId(id);
-
-        // ÉTAPE 3: Si la catégorie est utilisée, refuser la suppression et renvoyer une erreur 409 Conflict.
         if (productCount > 0) {
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "Impossible de supprimer. Cette catégorie est utilisée par " + productCount + " produit(s).");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Impossible de supprimer, cette catégorie est utilisée par " + productCount + " produit(s).");
         }
-
-        // ÉTAPE 4: Si la catégorie n'est pas utilisée, la supprimer en toute sécurité.
         categoryRepository.deleteById(id);
     }
 }

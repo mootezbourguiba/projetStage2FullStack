@@ -1,44 +1,50 @@
-// src/main/java/com/esprim/stockmanagement/controllers/CategoryController.java
+// src/main/java/tn/esprit/stock_management/controllers/CategoryController.java
 
 package tn.esprit.stock_management.controllers;
 
-import tn.esprit.stock_management.entities.Category;
+// NOUVEAU: Import des DTOs
+import tn.esprit.stock_management.dto.CategoryRequest;
+import tn.esprit.stock_management.dto.CategoryResponse;
 import tn.esprit.stock_management.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/categories")
-// @CrossOrigin(origins = "*") // Plus nécessaire grâce à la config globale
+// Il est recommandé d'avoir une configuration CORS globale, mais si vous en avez besoin ici, décommentez-la.
+// @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
 public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
 
-    // GET /api/categories -> Récupérer toutes les catégories
+    // --- MODIFIÉ ---
+    // GET /api/categories -> Renvoie une liste de DTOs sécurisés, pas les entités complètes
     @GetMapping
-    public List<Category> getAllCategories() {
+    public List<CategoryResponse> getAllCategories() {
         return categoryService.getAllCategories();
     }
 
-    // POST /api/categories -> Créer une nouvelle catégorie
+    // --- MODIFIÉ ---
+    // POST /api/categories -> Reçoit un DTO simple et renvoie le DTO de la catégorie créée
     @PostMapping
-    public Category createCategory(@RequestBody Category category) {
-        return categoryService.createCategory(category);
+    public CategoryResponse createCategory(@RequestBody CategoryRequest request) {
+        // Le service gère la logique de création à partir du DTO
+        return categoryService.saveCategory(request);
     }
 
-    // --- NOUVEAU: Endpoint pour PUT /api/categories/{id} -> Modifier une catégorie ---
+    // --- MODIFIÉ ---
+    // PUT /api/categories/{id} -> Reçoit un DTO et l'ID, puis renvoie le DTO de la catégorie mise à jour
     @PutMapping("/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestBody Category categoryDetails) {
-        Category updatedCategory = categoryService.updateCategory(id, categoryDetails);
-        return ResponseEntity.ok(updatedCategory);
+    public CategoryResponse updateCategory(@PathVariable Long id, @RequestBody CategoryRequest request) {
+        // Le service gère la logique de mise à jour
+        return categoryService.updateCategory(id, request);
     }
 
-    // --- NOUVEAU: Endpoint pour DELETE /api/categories/{id} -> Supprimer une catégorie ---
+    // --- INCHANGÉ (Déjà correct) ---
+    // DELETE /api/categories/{id} -> Supprimer une catégorie
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);

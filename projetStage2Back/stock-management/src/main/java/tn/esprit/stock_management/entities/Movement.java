@@ -4,7 +4,7 @@ package tn.esprit.stock_management.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -15,25 +15,27 @@ public class Movement {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String type; // "in" or "out"
+    @Enumerated(EnumType.STRING) // Stocke l'enum sous forme de texte ("ENTREE", "SORTIE")
+    private MovementType type;
+
     private int quantity;
-    private LocalDate date;
+    private LocalDateTime movementDate;
     private String notes;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    // On peut ajouter plus tard la relation avec l'utilisateur
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "supplier_id") // Null si c'est une sortie
+    private Supplier supplier;
+
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "client_id") // Null si c'est une entrée
+    private Client client;
+
+    // Vous pouvez ajouter plus tard une relation vers l'utilisateur qui a fait l'opération
     // @ManyToOne
     // @JoinColumn(name = "user_id")
     // private User user;
-
-    @ManyToOne
-    @JoinColumn(name = "supplier_id", nullable = true) // nullable = true car seulement pour les entrées
-    private Supplier supplier;
-
-    @ManyToOne
-    @JoinColumn(name = "client_id", nullable = true) // nullable = true car seulement pour les sorties
-    private Client client;
 }
