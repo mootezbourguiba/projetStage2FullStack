@@ -4,18 +4,20 @@ import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
 
 const ProtectedRoute = () => {
-  // Pour l'instant, on simule un utilisateur connecté.
-  // Plus tard, tu remplaceras cette logique par une vraie vérification
-  // (ex: vérifier la présence d'un token dans le localStorage).
-  const isAuthenticated = true; // <-- CHANGE CECI en 'false' pour tester la redirection
+  // --- MODIFICATION MAJEURE ---
+  // On ne simule plus. On vérifie la présence réelle d'un token
+  // que la page de Login aura stocké après une connexion réussie.
+  const token = localStorage.getItem('token');
 
-  if (!isAuthenticated) {
-    // Si l'utilisateur n'est pas authentifié, on le redirige vers la page de login.
+  // Si le token n'existe pas (l'utilisateur n'est pas connecté),
+  // on le redirige vers la page de login.
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  // Si l'utilisateur est authentifié, on affiche la page demandée (Dashboard, Products, etc.).
-  // <Outlet /> est un placeholder pour la route enfant.
+  // Si le token existe, on autorise l'accès.
+  // <Outlet /> représente la page protégée que l'utilisateur essaie de visiter
+  // (Dashboard, Products, etc.).
   return <Outlet />;
 };
 
