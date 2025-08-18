@@ -2,6 +2,7 @@ package tn.esprit.stock_management.controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin; // <-- IMPORTER CETTE CLASSE
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,6 +15,7 @@ import tn.esprit.stock_management.services.AuthService;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*") // <-- AJOUTEZ CETTE LIGNE
 public class AuthController {
     private final AuthService authService;
 

@@ -1,11 +1,14 @@
+// src/pages/auth/Login.jsx
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../../context/AuthContext'; // <-- Chemin relatif correct
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth(); // <-- On récupère la fonction login du contexte
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -16,11 +19,8 @@ const Login = () => {
     setError('');
     try {
       const response = await axios.post('http://localhost:8081/api/auth/login', formData);
-      const { token } = response.data;
-      if (token) {
-        localStorage.setItem('token', token); // On stocke le vrai token
-        // Il faudra aussi configurer axios pour envoyer ce token à chaque requête
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      if (response.data.token) {
+        login(response.data.token); // <-- On utilise la fonction du contexte !
         navigate('/dashboard');
       }
     } catch (err) {
@@ -40,11 +40,11 @@ const Login = () => {
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email">Email</label>
-              <input id="email" name="email" type="email" required onChange={handleChange} className="input-style mt-1" />
+              <input id="email" name="email" type="email" value={formData.email} required onChange={handleChange} className="input-style mt-1" />
             </div>
             <div>
               <label htmlFor="password">Mot de passe</label>
-              <input id="password" name="password" type="password" required onChange={handleChange} className="input-style mt-1" />
+              <input id="password" name="password" type="password" value={formData.password} required onChange={handleChange} className="input-style mt-1" />
             </div>
             {error && <p className="text-sm text-red-600 text-center">{error}</p>}
             <button type="submit" className="w-full py-2 px-4 rounded-md text-white bg-indigo-600 hover:bg-indigo-700">Se connecter</button>
