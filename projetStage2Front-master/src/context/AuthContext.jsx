@@ -8,7 +8,7 @@ const AuthContext = createContext({
     user: null,
     token: null,
     isAuthenticated: false,
-    loading: true, // On ajoute loading à la valeur par défaut
+    loading: true,
     login: () => {},
     logout: () => {},
 });
@@ -16,7 +16,7 @@ const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [token, setToken] = useState(() => localStorage.getItem('token'));
-    const [loading, setLoading] = useState(true); // État pour savoir si on vérifie le token
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (token) {
@@ -24,18 +24,24 @@ export const AuthProvider = ({ children }) => {
                 const decodedToken = jwtDecode(token);
                 if (decodedToken.exp * 1000 > Date.now()) {
                     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-                    setUser({ email: decodedToken.sub, role: decodedToken.authorities[0].authority });
+                    
+                    // --- CORRECTION FINALE ET DÉFINITIVE ---
+                    // Le champ dans le token s'appelle "auth", comme défini dans votre JwtTokenProvider.java
+                    setUser({ email: decodedToken.sub, role: decodedToken.auth[0] });
+
                 } else {
                     localStorage.removeItem('token');
                     setToken(null);
+                    setUser(null);
                 }
             } catch (error) {
-                console.error("Token invalide ou expiré", error);
+                console.error("Token invalide ou erreur de décodage", error);
                 localStorage.removeItem('token');
                 setToken(null);
+                setUser(null);
             }
         }
-        setLoading(false); // On a fini de vérifier, on arrête de charger
+        setLoading(false); 
     }, [token]);
 
     const login = (newToken) => {
@@ -46,11 +52,24 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('token');
         setToken(null);
+        setUser(null);
+        delete axios.defaults.headers.common['Authorization'];
     };
 
-    const value = { user, token, loading, login, logout, isAuthenticated: !!token };
+    const value = { 
+        user, 
+        token, 
+        loading, 
+        login, 
+        logout, 
+        isAuthenticated: !!token && !!user
+    };
 
-    return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+    return (
+        <AuthContext.Provider value={value}>
+            {!loading && children}
+        </AuthContext.Provider>
+    );
 };
 
 export const useAuth = () => {
