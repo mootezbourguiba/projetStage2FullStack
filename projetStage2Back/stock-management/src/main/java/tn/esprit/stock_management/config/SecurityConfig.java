@@ -37,4 +37,7 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+    // NOTE: Tous les autres beans (PasswordEncoder, AuthenticationManager, etc.)
+    // ont été déplacés dans ApplicationConfig.java pour une meilleure organisation.
 }

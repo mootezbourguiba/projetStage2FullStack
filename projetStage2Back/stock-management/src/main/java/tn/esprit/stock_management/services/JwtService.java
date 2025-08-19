@@ -1,3 +1,4 @@
+// src/main/java/tn/esprit/stock_management/services/JwtService.java
 package tn.esprit.stock_management.services;
 
 import io.jsonwebtoken.Claims;
@@ -13,9 +14,11 @@ import java.util.function.Function;
 
 @Service
 public class JwtService {
-    // Générez une clé secrète de 256 bits (ex: sur https://www.allkeysgenerator.com/Random/Security-Encryption-Key-Generator.aspx)
-    // IMPORTANT: Ne mettez JAMAIS cette clé en clair dans le code d'un projet réel. Utilisez les variables d'environnement.
-    private static final String SECRET_KEY = "votresupercle secretequisuffisammentlonguepouretresecurise";
+
+    // --- CORRECTION DÉFINITIVE ICI ---
+    // On utilise une vraie clé secrète encodée en Base64.
+    // Cette clé a été générée spécifiquement pour cet usage.
+    private static final String SECRET_KEY = "NDJGWTZFRURDNDdGN0EzNDQ0NkE1NzM3NTg2QjY5NUEzREY1ODg0RjU0NTIzQTQ0ODIzNEE1RkU0NTI0M0E0QQ==";
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);

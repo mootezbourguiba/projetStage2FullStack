@@ -2,13 +2,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext'; // <-- Chemin relatif correct
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
-  const { login } = useAuth(); // <-- On récupère la fonction login du contexte
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -20,7 +20,9 @@ const Login = () => {
     try {
       const response = await axios.post('http://localhost:8081/api/auth/login', formData);
       if (response.data.token) {
-        login(response.data.token); // <-- On utilise la fonction du contexte !
+        login(response.data.token);
+        // Après avoir mis à jour le token, on navigue.
+        // Le ProtectedRoute prendra le relais correctement.
         navigate('/dashboard');
       }
     } catch (err) {

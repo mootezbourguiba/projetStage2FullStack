@@ -2,23 +2,22 @@
 
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const ProtectedRoute = () => {
-  // --- MODIFICATION MAJEURE ---
-  // On ne simule plus. On vérifie la présence réelle d'un token
-  // que la page de Login aura stocké après une connexion réussie.
-  const token = localStorage.getItem('token');
+    const { isAuthenticated, loading } = useAuth();
 
-  // Si le token n'existe pas (l'utilisateur n'est pas connecté),
-  // on le redirige vers la page de login.
-  if (!token) {
-    return <Navigate to="/login" replace />;
-  }
+    // Si on est en train de vérifier le token, on affiche un message de chargement
+    if (loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <p>Vérification de la session...</p>
+            </div>
+        );
+    }
 
-  // Si le token existe, on autorise l'accès.
-  // <Outlet /> représente la page protégée que l'utilisateur essaie de visiter
-  // (Dashboard, Products, etc.).
-  return <Outlet />;
+    // Une fois la vérification terminée, on prend la décision
+    return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
 };
 
 export default ProtectedRoute;
