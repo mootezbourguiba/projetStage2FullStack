@@ -1,10 +1,10 @@
--- Ce script est exécuté au démarrage pour créer ou mettre à jour l'utilisateur admin par défaut.
+-- APRÈS MODIFICATION
 
--- D'abord, on supprime l'utilisateur admin s'il existe déjà pour éviter les duplications.
--- C'est plus sûr que TRUNCATE car ça ne pose pas de problème avec les clés étrangères.
-DELETE FROM _user WHERE email = 'admin@esprim.com';
+-- Les lignes concernant l'utilisateur admin ont été supprimées.
+-- Le fichier commence directement avec l'insertion des autres données.
 
--- Ensuite, on insère l'utilisateur admin avec un ID fixe et un mot de passe haché VALIDE.
--- Remplacez la ligne ci-dessous par le hash que vous avez généré avec PasswordGenerator.java
-INSERT INTO _user (id, name, email, password, role)
-VALUES (1, 'Admin Esprim', 'admin@esprim.com', '$2a$10$AbCdEfGhIjKlMnOpQrStU.AbCdEfGhIjKlMnOpQrStUAbCdEfG', 'ADMIN');
+-- Création de catégories
+INSERT INTO category (id, name, description) VALUES (1, 'Électronique', 'Appareils électroniques et gadgets');
+INSERT INTO category (id, name, description) VALUES (2, 'Fournitures de bureau', 'Papeterie et autres fournitures');
+
+-- etc.
