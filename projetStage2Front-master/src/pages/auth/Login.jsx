@@ -9,18 +9,17 @@ const Login = () => {
     const [formData, setFormData] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const navigate = useNavigate();
-    // On récupère `login` ET `isAuthenticated` depuis le contexte
+    // On récupère `isAuthenticated` pour observer son changement
     const { login, isAuthenticated } = useAuth();
 
-    // --- LA MODIFICATION CLÉ EST ICI ---
-    // Cet `useEffect` s'exécutera à chaque fois que `isAuthenticated` changera.
+    // --- CETTE PARTIE EST LA SOLUTION ---
+    // Cet `useEffect` observe la variable `isAuthenticated`.
+    // Dès qu'elle passe à `true`, il exécute la redirection.
     useEffect(() => {
-        // Si l'utilisateur devient authentifié (après une connexion réussie),
-        // alors on le redirige vers le tableau de bord.
         if (isAuthenticated) {
             navigate('/dashboard', { replace: true });
         }
-    }, [isAuthenticated, navigate]); // Dépendances de l'effet
+    }, [isAuthenticated, navigate]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -33,11 +32,9 @@ const Login = () => {
             const response = await axios.post('http://localhost:8081/api/auth/login', formData);
             if (response.data.token) {
                 // On se contente d'appeler `login`.
-                // Le `useEffect` ci-dessus s'occupera de la redirection
-                // une fois que l'état `isAuthenticated` sera bien mis à jour.
+                // Le `useEffect` ci-dessus s'occupera de la redirection au bon moment.
                 login(response.data.token);
             } else {
-                // Cas peu probable où le serveur répond 200 OK mais sans token.
                 setError("Une erreur est survenue lors de la connexion.");
             }
         } catch (err) {

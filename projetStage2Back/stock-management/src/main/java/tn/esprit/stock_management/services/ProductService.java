@@ -23,8 +23,6 @@ public class ProductService {
     private CategoryRepository categoryRepository;
 
     // --- Méthodes de conversion (helpers) ---
-
-    // Convertit une entité Product en un DTO ProductDTO pour l'envoyer au frontend
     private ProductDTO toDto(Product product) {
         ProductDTO dto = new ProductDTO();
         dto.setId(product.getId());
@@ -39,7 +37,6 @@ public class ProductService {
         return dto;
     }
 
-    // Applique les données d'un DTO ProductDTO à une entité Product (pour la sauvegarde)
     private Product toEntity(ProductDTO dto, Product product) {
         product.setName(dto.getName());
         product.setReference(dto.getReference());
@@ -48,13 +45,12 @@ public class ProductService {
         product.setAlertThreshold(dto.getAlertThreshold());
         product.setPhotoUrl(dto.getPhotoUrl());
 
-        // Gère l'association avec la catégorie
         if (dto.getCategory() != null && dto.getCategory().getId() != null) {
             Category category = categoryRepository.findById(dto.getCategory().getId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Catégorie avec l'ID " + dto.getCategory().getId() + " non trouvée"));
             product.setCategory(category);
         } else {
-            product.setCategory(null); // Permet de dissocier un produit d'une catégorie
+            product.setCategory(null);
         }
         return product;
     }
@@ -62,9 +58,7 @@ public class ProductService {
     // --- Méthodes publiques du service (API) ---
 
     public List<ProductDTO> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::toDto)
-                .collect(Collectors.toList());
+        return productRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
     }
 
     public ProductDTO getProductById(Long id) {
@@ -73,19 +67,17 @@ public class ProductService {
         return toDto(product);
     }
 
-    // NOUVEAU: Méthode pour créer ou mettre à jour à partir d'un DTO
     public ProductDTO saveProduct(ProductDTO dto) {
         Product product = new Product();
-        product = toEntity(dto, product); // Applique les données du DTO à la nouvelle entité
+        product = toEntity(dto, product);
         Product savedProduct = productRepository.save(product);
-        return toDto(savedProduct); // Renvoie un DTO du produit sauvegardé
+        return toDto(savedProduct);
     }
 
-    // NOUVEAU: Méthode pour mettre à jour à partir d'un DTO
     public ProductDTO updateProduct(Long id, ProductDTO dto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Produit non trouvé avec l'id : " + id));
-        product = toEntity(dto, product); // Applique les données du DTO à l'entité existante
+        product = toEntity(dto, product);
         Product updatedProduct = productRepository.save(product);
         return toDto(updatedProduct);
     }
@@ -94,7 +86,13 @@ public class ProductService {
         if (!productRepository.existsById(id)) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Produit non trouvé avec l'id : " + id);
         }
-        // Ajouter ici une vérification si le produit est lié à des mouvements de stock
         productRepository.deleteById(id);
+    }
+
+    // --- NOUVELLE MÉTHODE POUR LES ALERTES ---
+    public List<ProductDTO> getProductsInAlert() {
+        return productRepository.findProductsInAlert().stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 }

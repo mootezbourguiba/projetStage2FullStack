@@ -1,4 +1,3 @@
-// src/main/java/tn/esprit/stock_management/services/AuthService.java
 package tn.esprit.stock_management.services;
 
 import lombok.RequiredArgsConstructor;
@@ -23,8 +22,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
 
     public AuthResponse register(RegisterRequest request) {
-        // --- AMÉLIORATION CRUCIALE ---
-        // On vérifie si l'email existe DÉJÀ avant de faire quoi que ce soit.
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Cet email est déjà utilisé.");
         });
@@ -44,7 +41,8 @@ public class AuthService {
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-        User user = userRepository.findByEmail(request.getEmail()).orElseThrow();
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new IllegalStateException("Utilisateur non trouvé après une authentification réussie."));
         String jwtToken = jwtService.generateToken(user);
         return AuthResponse.builder().token(jwtToken).build();
     }

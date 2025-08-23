@@ -3,6 +3,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
+// L'import de AuthProvider est ici
 import { AuthProvider } from './context/AuthContext';
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
@@ -19,13 +20,13 @@ import DashboardLayout from './components/DashboardLayout.jsx';
 function App() {
   return (
     <Router>
+      {/* AuthProvider englobe tout, c'est parfait */}
       <AuthProvider>
         <NotificationProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Routes Protégées */}
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
@@ -35,9 +36,6 @@ function App() {
                 <Route path="/fournisseurs" element={<FournisseursPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/emprunts" element={<EmpruntsPage />} />
-                
-                {/* --- CORRECTION ICI --- */}
-                {/* Si un utilisateur connecté arrive à la racine, on l'envoie au dashboard */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Route>
