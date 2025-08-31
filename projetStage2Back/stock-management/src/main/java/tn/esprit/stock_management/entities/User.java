@@ -1,10 +1,9 @@
+// src/main/java/tn/esprit/stock_management/entities/User.java
 package tn.esprit.stock_management.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,13 +11,11 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
-@Table(name = "_user") // Utiliser "_user" car "user" est un mot-clé réservé
-public class User implements UserDetails { // <<--- 1. IMPLÉMENTER L'INTERFACE
+@Table(name = "users")
+@Getter
+@Setter
+public class User implements UserDetails { // <-- ON IMPLÉMENTE UserDetails
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,34 +29,26 @@ public class User implements UserDetails { // <<--- 1. IMPLÉMENTER L'INTERFACE
     @Column(nullable = false)
     private String password;
 
+    // On utilise un ENUM pour les rôles, c'est une meilleure pratique.
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
 
-    // ==================================================================
-    // --- 2. AJOUTER LES MÉTHODES DE L'INTERFACE USERDETAILS ---
-    // ==================================================================
+    // --- MÉTHODES REQUISES PAR LE CONTRAT UserDetails ---
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // C'est la méthode la plus importante.
-        // Elle transforme notre rôle (ex: Role.ADMIN) en une autorité que Spring Security comprend.
+        // On transforme notre rôle (ex: ADMIN) en une "autorité" que Spring Security comprend.
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
     @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
     public String getUsername() {
-        // Pour notre application, le "nom d'utilisateur" est l'email.
+        // Pour notre application, l'email est le nom d'utilisateur.
         return email;
     }
 
-    // Les méthodes suivantes peuvent rester à `true` par défaut.
-    // Elles servent à gérer le blocage de compte, l'expiration, etc.
+    // Les méthodes suivantes sont pour gérer des cas plus complexes (compte expiré, etc.)
+    // Pour notre projet, on les met simplement à 'true'.
     @Override
     public boolean isAccountNonExpired() {
         return true;

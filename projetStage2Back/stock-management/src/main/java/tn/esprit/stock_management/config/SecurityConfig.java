@@ -1,9 +1,12 @@
+// src/main/java/tn/esprit/stock_management/config/SecurityConfig.java
+
 package tn.esprit.stock_management.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // Assurez-vous que cet import est présent
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,7 +27,7 @@ import static org.springframework.security.config.Customizer.withDefaults;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // Vous pouvez la laisser, elle ne posera pas de problème sans @PreAuthorize
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -41,20 +44,21 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         // 1. Routes publiques qui ne nécessitent pas de token
-                        .requestMatchers("/api/auth/**", "/h2-console/**", "/uploads/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/uploads/**").permitAll()
 
-                        // 2. (LA MODIFICATION) Routes API qui nécessitent juste d'être connecté
+                        // --- MODIFICATION ICI : Règles plus spécifiques ---
+                        // On autorise TOUTES les méthodes sur /api/users pour le rôle ADMIN
+                        .requestMatchers("/api/users/**").hasAuthority("ADMIN")
+
+                        // 2. Toutes les autres routes API nécessitent d'être connecté
                         .requestMatchers("/api/**").authenticated()
 
                         // 3. (SÉCURITÉ) Toute autre requête est refusée
-                        .anyRequest().denyAll()
+                        .anyRequest().denyAll() // Gardez cette ligne si elle est présente
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        // Optionnel : si vous utilisez H2, pour pouvoir voir la console dans un iframe
-        http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()));
 
         return http.build();
     }
@@ -62,18 +66,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // Utiliser la variable au lieu de la chaîne de caractères codée en dur
-        configuration.setAllowedOrigins(List.of(allowedOrigins));
-
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Appliquer cette configuration à toutes les routes de l'application
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
+
+    // Le PasswordEncoder doit être dans votre ApplicationConfig.java, donc pas besoin de l'ajouter ici.
 }

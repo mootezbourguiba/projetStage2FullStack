@@ -3,7 +3,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationProvider } from './context/NotificationContext';
-// L'import de AuthProvider est ici
 import { AuthProvider } from './context/AuthContext';
 import Login from './pages/auth/Login.jsx';
 import Register from './pages/auth/Register.jsx';
@@ -14,13 +13,14 @@ import MouvementsPage from './pages/MouvementsPage.jsx';
 import FournisseursPage from './pages/FournisseursPage.jsx';
 import NotificationsPage from './pages/NotificationsPage.jsx';
 import EmpruntsPage from './pages/EmpruntsPage.jsx';
+import UsersPage from './pages/UsersPage.jsx'; // --- AJOUT DE L'IMPORT ---
+
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import DashboardLayout from './components/DashboardLayout.jsx';
 
 function App() {
   return (
     <Router>
-      {/* AuthProvider englobe tout, c'est parfait */}
       <AuthProvider>
         <NotificationProvider>
           <Routes>
@@ -36,6 +36,10 @@ function App() {
                 <Route path="/fournisseurs" element={<FournisseursPage />} />
                 <Route path="/notifications" element={<NotificationsPage />} />
                 <Route path="/emprunts" element={<EmpruntsPage />} />
+                
+                {/* --- AJOUT DE LA ROUTE MANQUANTE --- */}
+                <Route path="/users" element={<UsersPage />} />
+
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
               </Route>
             </Route>
